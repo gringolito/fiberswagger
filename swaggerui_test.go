@@ -2,6 +2,7 @@ package fiberswagger
 
 import (
 	"fmt"
+	"io"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
@@ -61,6 +62,23 @@ func TestRouter_RendersSwaggerUIAndSpec(t *testing.T) {
 	specResp, err := app.Test(httptest.NewRequest(fiber.MethodGet, "/openapi/swagger.json", nil))
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, specResp.StatusCode)
+}
+
+func TestMiddleware_RendersUI(t *testing.T) {
+	specPath := writeSpec(t, testSpec)
+	app := fiber.New()
+
+	handler, err := Middleware(Config{BasePath: "/docs", FilePath: specPath})
+	require.NoError(t, err)
+	app.Use(handler)
+
+	resp, err := app.Test(httptest.NewRequest(fiber.MethodGet, "/docs/", nil))
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	require.Contains(t, string(body), "swagger-ui")
 }
 
 func TestMiddleware_RendersSpec(t *testing.T) {
