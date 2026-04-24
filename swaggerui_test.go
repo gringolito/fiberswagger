@@ -38,7 +38,8 @@ func TestRouter_RendersSwaggerUIAndSpec(t *testing.T) {
 	specPath := writeSpec(t, testSpec)
 	app := fiber.New()
 
-	Router(app, Config{BasePath: "/openapi", FilePath: specPath})
+	err := Router(app, Config{BasePath: "/openapi", FilePath: specPath})
+	require.NoError(t, err)
 
 	uiResp, err := app.Test(httptest.NewRequest(fiber.MethodGet, "/openapi/", nil))
 	require.NoError(t, err)
@@ -52,27 +53,76 @@ func TestRouter_RendersSwaggerUIAndSpec(t *testing.T) {
 func TestMiddleware_RendersSpec(t *testing.T) {
 	specPath := writeSpec(t, testSpec)
 	app := fiber.New()
-	app.Use(Middleware(Config{BasePath: "/docs", FilePath: specPath}))
+
+	handler, err := Middleware(Config{BasePath: "/docs", FilePath: specPath})
+	require.NoError(t, err)
+	app.Use(handler)
 
 	resp, err := app.Test(httptest.NewRequest(fiber.MethodGet, "/docs/swagger.json", nil))
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 }
 
-func TestRouter_PanicsWhenSpecFileMissing(t *testing.T) {
+func TestRouter_ReturnsErrorWhenSpecFileMissing(t *testing.T) {
+	app := fiber.New()
+	missing := filepath.Join(t.TempDir(), "missing-openapi.yaml")
+
+	err := Router(app, Config{FilePath: missing})
+	require.EqualError(t, err, fmt.Sprintf("%s file is not exist", missing))
+}
+
+func TestRouter_ReturnsErrorWhenSpecInvalid(t *testing.T) {
+	specPath := writeSpec(t, "openapi: [broken")
+	app := fiber.New()
+
+	err := Router(app, Config{FilePath: specPath})
+	require.Error(t, err)
+}
+
+func TestMiddleware_ReturnsErrorWhenSpecFileMissing(t *testing.T) {
+	missing := filepath.Join(t.TempDir(), "missing-openapi.yaml")
+
+	_, err := Middleware(Config{FilePath: missing})
+	require.EqualError(t, err, fmt.Sprintf("%s file is not exist", missing))
+}
+
+func TestMiddleware_ReturnsErrorWhenSpecInvalid(t *testing.T) {
+	specPath := writeSpec(t, "openapi: [broken")
+
+	_, err := Middleware(Config{FilePath: specPath})
+	require.Error(t, err)
+}
+
+func TestMustRouter_PanicsWhenSpecFileMissing(t *testing.T) {
 	app := fiber.New()
 	missing := filepath.Join(t.TempDir(), "missing-openapi.yaml")
 
 	require.PanicsWithError(t, fmt.Sprintf("%s file is not exist", missing), func() {
-		Router(app, Config{FilePath: missing})
+		MustRouter(app, Config{FilePath: missing})
 	})
 }
 
-func TestRouter_PanicsWhenSpecInvalid(t *testing.T) {
+func TestMustRouter_PanicsWhenSpecInvalid(t *testing.T) {
 	specPath := writeSpec(t, "openapi: [broken")
 	app := fiber.New()
 
 	require.Panics(t, func() {
-		Router(app, Config{FilePath: specPath})
+		MustRouter(app, Config{FilePath: specPath})
+	})
+}
+
+func TestMustMiddleware_PanicsWhenSpecFileMissing(t *testing.T) {
+	missing := filepath.Join(t.TempDir(), "missing-openapi.yaml")
+
+	require.PanicsWithError(t, fmt.Sprintf("%s file is not exist", missing), func() {
+		MustMiddleware(Config{FilePath: missing})
+	})
+}
+
+func TestMustMiddleware_PanicsWhenSpecInvalid(t *testing.T) {
+	specPath := writeSpec(t, "openapi: [broken")
+
+	require.Panics(t, func() {
+		MustMiddleware(Config{FilePath: specPath})
 	})
 }
