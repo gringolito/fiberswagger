@@ -12,29 +12,24 @@ type Config struct {
 	FilePath string
 }
 
-// ConfigDefault is the default config
-var ConfigDefault = Config{
+var defaultConfig = Config{
 	BasePath: "/docs",
 	FilePath: "./openapi.yaml",
 }
 
-// Helper function to set default values
 func configDefault(config ...Config) Config {
-	// Return default config if nothing provided
 	if len(config) < 1 {
-		return ConfigDefault
+		return defaultConfig
 	}
 
-	// Override default config
 	cfg := config[0]
 
-	// Set default values
 	if cfg.BasePath == "" {
-		cfg.BasePath = ConfigDefault.BasePath
+		cfg.BasePath = defaultConfig.BasePath
 	}
 
 	if cfg.FilePath == "" {
-		cfg.FilePath = ConfigDefault.FilePath
+		cfg.FilePath = defaultConfig.FilePath
 	}
 
 	return cfg

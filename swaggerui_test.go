@@ -34,6 +34,19 @@ func TestConfigDefault(t *testing.T) {
 	require.Equal(t, "./openapi.yaml", cfg.FilePath)
 }
 
+func TestConfigDefault_MutationDoesNotAffectDefaults(t *testing.T) {
+	original := defaultConfig
+	t.Cleanup(func() { defaultConfig = original })
+
+	// Simulate a partial-override call that modifies nothing, then verify
+	// that the internal defaults haven't drifted.
+	_ = configDefault(Config{BasePath: "/custom"})
+
+	cfg := configDefault()
+	require.Equal(t, "/docs", cfg.BasePath)
+	require.Equal(t, "./openapi.yaml", cfg.FilePath)
+}
+
 func TestRouter_RendersSwaggerUIAndSpec(t *testing.T) {
 	specPath := writeSpec(t, testSpec)
 	app := fiber.New()
