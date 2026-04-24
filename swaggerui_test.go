@@ -30,9 +30,51 @@ func writeSpec(t *testing.T, content string) string {
 }
 
 func TestConfigDefault(t *testing.T) {
-	cfg := configDefault()
-	require.Equal(t, "/docs", cfg.BasePath)
-	require.Equal(t, "./openapi.yaml", cfg.FilePath)
+	tests := []struct {
+		name             string
+		input            []Config
+		expectedBasePath string
+		expectedFilePath string
+	}{
+		{
+			name:             "no args uses both defaults",
+			input:            nil,
+			expectedBasePath: "/docs",
+			expectedFilePath: "./openapi.yaml",
+		},
+		{
+			name:             "empty config uses both defaults",
+			input:            []Config{{}},
+			expectedBasePath: "/docs",
+			expectedFilePath: "./openapi.yaml",
+		},
+		{
+			name:             "only BasePath set falls back FilePath",
+			input:            []Config{{BasePath: "/custom"}},
+			expectedBasePath: "/custom",
+			expectedFilePath: "./openapi.yaml",
+		},
+		{
+			name:             "only FilePath set falls back BasePath",
+			input:            []Config{{FilePath: "/spec.yaml"}},
+			expectedBasePath: "/docs",
+			expectedFilePath: "/spec.yaml",
+		},
+		{
+			name:             "both fields set uses neither default",
+			input:            []Config{{BasePath: "/custom", FilePath: "/spec.yaml"}},
+			expectedBasePath: "/custom",
+			expectedFilePath: "/spec.yaml",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := configDefault(tt.input...)
+			require.Equal(t, tt.expectedBasePath, cfg.BasePath)
+			require.Equal(t, tt.expectedFilePath, cfg.FilePath)
+		})
+	}
 }
 
 func TestConfigDefault_MutationDoesNotAffectDefaults(t *testing.T) {
