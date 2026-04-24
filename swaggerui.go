@@ -29,6 +29,12 @@ func loadSpec(cfg Config) (*loads.Document, error) {
 // Middleware returns a fiber.Handler that renders an OpenAPI specification using SwaggerUI.
 // It returns an error if the spec file cannot be loaded or parsed.
 // Use MustMiddleware if you prefer a panic on misconfiguration.
+//
+// Middleware uses adaptor.HTTPMiddleware, which propagates the Fiber handler chain
+// through the underlying net/http middleware layer. Requests that do not match the
+// swagger routes (UI or spec) are passed to the next Fiber handler, so downstream
+// middleware continues to run for non-swagger traffic.
+// Use Router when you want isolated, terminal routes without next-handler propagation.
 func Middleware(config ...Config) (fiber.Handler, error) {
 	cfg := configDefault(config...)
 
@@ -65,6 +71,11 @@ func MustMiddleware(config ...Config) fiber.Handler {
 // Router creates routes with handlers that render an OpenAPI specification using SwaggerUI.
 // It returns an error if the spec file cannot be loaded or parsed.
 // Use MustRouter if you prefer a panic on misconfiguration.
+//
+// Router uses adaptor.HTTPHandler with a nil next handler. The swagger route handlers
+// are terminal: Fiber middleware registered after these routes will not execute for
+// requests matched by them.
+// Use Middleware when you need downstream Fiber handlers to run for all requests.
 func Router(router fiber.Router, config ...Config) error {
 	cfg := configDefault(config...)
 

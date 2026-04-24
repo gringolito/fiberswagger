@@ -65,6 +65,20 @@ app.Use(fiberswagger.MustMiddleware(fiberswagger.Config{
 }))
 ```
 
+## Choosing between Middleware and Router
+
+Both modes serve the same UI and spec, but they differ in how they interact with the Fiber handler chain.
+
+**Router** mounts two explicit routes (`GET /` and `GET /swagger.json` under `BasePath`) using `adaptor.HTTPHandler` with a `nil` next handler. The route handlers are terminal: Fiber middleware registered *after* `Router()` will not execute for requests that match the swagger routes. Choose `Router` when you want clean, isolated route registration and don't need downstream middleware to run on swagger traffic.
+
+**Middleware** registers a single `fiber.Handler` via `app.Use` using `adaptor.HTTPMiddleware`, which propagates the Fiber handler chain through the underlying `net/http` layer. Requests that do not match the swagger paths (UI or spec) are passed to the next Fiber handler, so subsequent middleware continues to run. Choose `Middleware` when swagger should sit inside a broader middleware stack and non-swagger requests must fall through to other handlers.
+
+| | Router | Middleware |
+| --- | --- | --- |
+| Mount style | Explicit routes (`app.Get`) | `app.Use` catch-all |
+| Next-handler propagation | No — swagger routes are terminal | Yes — non-swagger requests fall through |
+| Downstream middleware runs | No | Yes (for non-swagger paths) |
+
 ## Features
 
 - Serves Swagger UI under a configurable base path

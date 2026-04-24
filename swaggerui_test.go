@@ -199,3 +199,47 @@ func TestMustMiddleware_PanicsWhenSpecInvalid(t *testing.T) {
 		MustMiddleware(Config{FilePath: specPath})
 	})
 }
+
+// TestRouter_DoesNotPropagateToNextMiddleware verifies that Router uses a terminal
+// handler: Fiber middleware registered after the swagger routes will not execute
+// for requests matched by those routes.
+func TestRouter_DoesNotPropagateToNextMiddleware(t *testing.T) {
+	specPath := writeSpec(t, testSpec)
+	app := fiber.New()
+
+	err := Router(app, Config{BasePath: "/openapi", FilePath: specPath})
+	require.NoError(t, err)
+
+	nextCalled := false
+	app.Use(func(c *fiber.Ctx) error {
+		nextCalled = true
+		return c.Next()
+	})
+
+	resp, err := app.Test(httptest.NewRequest(fiber.MethodGet, "/openapi/", nil))
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusOK, resp.StatusCode)
+	require.False(t, nextCalled, "Router mode must not propagate to downstream Fiber middleware")
+}
+
+// TestMiddleware_PropagatesNextHandler verifies that Middleware propagates the Fiber
+// handler chain: requests that do not match a swagger route reach the next handler.
+func TestMiddleware_PropagatesNextHandler(t *testing.T) {
+	specPath := writeSpec(t, testSpec)
+	app := fiber.New()
+
+	handler, err := Middleware(Config{BasePath: "/docs", FilePath: specPath})
+	require.NoError(t, err)
+	app.Use(handler)
+
+	nextCalled := false
+	app.Use(func(c *fiber.Ctx) error {
+		nextCalled = true
+		return c.SendStatus(fiber.StatusNoContent)
+	})
+
+	resp, err := app.Test(httptest.NewRequest(fiber.MethodGet, "/api/v1/users", nil))
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusNoContent, resp.StatusCode)
+	require.True(t, nextCalled, "Middleware mode must propagate non-swagger requests to the next Fiber handler")
+}
