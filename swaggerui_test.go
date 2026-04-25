@@ -1,6 +1,7 @@
 package fiberswagger
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http/httptest"
@@ -100,10 +101,18 @@ func TestRouter_RendersSwaggerUIAndSpec(t *testing.T) {
 	uiResp, err := app.Test(httptest.NewRequest(fiber.MethodGet, "/openapi/", nil))
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, uiResp.StatusCode)
+	uiBody, err := io.ReadAll(uiResp.Body)
+	require.NoError(t, err)
+	require.Contains(t, string(uiBody), "swagger-ui")
 
 	specResp, err := app.Test(httptest.NewRequest(fiber.MethodGet, "/openapi/swagger.json", nil))
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, specResp.StatusCode)
+	specBody, err := io.ReadAll(specResp.Body)
+	require.NoError(t, err)
+	var specData map[string]any
+	require.NoError(t, json.Unmarshal(specBody, &specData))
+	require.Contains(t, specData, "openapi")
 }
 
 func TestMiddleware_RendersUI(t *testing.T) {
@@ -134,6 +143,11 @@ func TestMiddleware_RendersSpec(t *testing.T) {
 	resp, err := app.Test(httptest.NewRequest(fiber.MethodGet, "/docs/swagger.json", nil))
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	var specData map[string]any
+	require.NoError(t, json.Unmarshal(body, &specData))
+	require.Contains(t, specData, "openapi")
 }
 
 func TestRouter_ReturnsErrorWhenSpecFileMissing(t *testing.T) {
