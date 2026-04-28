@@ -109,7 +109,6 @@ func handleSwaggerUI(cfg Config) fiber.Handler {
 
 func handleSwaggerJSON(swagger json.RawMessage) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		c.Status(http.StatusOK).JSON(swagger)
-		return nil
+		return c.Status(http.StatusOK).JSON(swagger)
 	}
 }
