@@ -1,5 +1,11 @@
 # fiberswagger
 
+[![CI](https://github.com/gringolito/fiberswagger/actions/workflows/ci.yaml/badge.svg)](https://github.com/gringolito/fiberswagger/actions/workflows/ci.yaml)
+[![CodeQL](https://github.com/gringolito/fiberswagger/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/gringolito/fiberswagger/actions/workflows/github-code-scanning/codeql)
+[![Go Reference](https://pkg.go.dev/badge/github.com/gringolito/fiberswagger.svg)](https://pkg.go.dev/github.com/gringolito/fiberswagger)
+![Go 1.25+](https://img.shields.io/badge/go-%3E%3D1.25-blue)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Fiber middleware and router helpers for exposing Swagger UI and OpenAPI spec files.
 
 ## Install
@@ -8,7 +14,21 @@ Fiber middleware and router helpers for exposing Swagger UI and OpenAPI spec fil
 go get github.com/gringolito/fiberswagger
 ```
 
+## Features
+
+- Serves Swagger UI under a configurable base path
+- Serves JSON OpenAPI spec at `<basePath>/swagger.json`
+- Supports direct router mounting or middleware mode
+
 ## Usage
+
+Both functions accept `Config` as an optional argument. When omitted, the UI is served at `/docs/` and the spec at `/docs/swagger.json`, reading the spec from `./openapi.yaml`:
+
+```go
+fiberswagger.MustRouter(app)
+// or
+app.Use(fiberswagger.MustMiddleware())
+```
 
 ### Router mode
 
@@ -79,8 +99,23 @@ Both modes serve the same UI and spec, but they differ in how they interact with
 | Next-handler propagation | No — swagger routes are terminal | Yes — non-swagger requests fall through |
 | Downstream middleware runs | No | Yes (for non-swagger paths) |
 
-## Features
+## Config Reference
 
-- Serves Swagger UI under a configurable base path
-- Serves JSON OpenAPI spec at `<basePath>/swagger.json`
-- Supports direct router mounting or middleware mode
+Both `Router` and `Middleware` accept an optional `Config` argument. All fields are optional and fall back to the defaults shown below.
+
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `BasePath` | `string` | `"/docs"` | URL path prefix where Swagger UI and the spec are served. The UI is at `<BasePath>/` and the spec at `<BasePath>/swagger.json`. |
+| `FilePath` | `string` | `"./openapi.yaml"` | Filesystem path to the OpenAPI spec file. Relative paths resolve from the working directory at startup. |
+
+## Contributing
+
+Contributions are welcome! Feel free to:
+
+- [Open an issue](https://github.com/gringolito/fiberswagger/issues) to report a bug or request a feature
+- Submit a pull request — please include tests for any new behavior
+- Suggest ideas by starting a [discussion](https://github.com/gringolito/fiberswagger/discussions)
+
+---
+
+*This project has moved from the Beerware License to MIT, but the spirit lives on: if we ever meet and you think this stuff is worth it, you're still very welcome to buy me a beer.*
