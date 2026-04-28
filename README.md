@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/gringolito/fiberswagger/actions/workflows/ci.yaml/badge.svg)](https://github.com/gringolito/fiberswagger/actions/workflows/ci.yaml)
 [![CodeQL](https://github.com/gringolito/fiberswagger/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/gringolito/fiberswagger/actions/workflows/github-code-scanning/codeql)
+[![codecov](https://codecov.io/gh/gringolito/fiberswagger/branch/master/graph/badge.svg)](https://codecov.io/gh/gringolito/fiberswagger)
 [![Go Reference](https://pkg.go.dev/badge/github.com/gringolito/fiberswagger.svg)](https://pkg.go.dev/github.com/gringolito/fiberswagger)
 ![Go 1.25+](https://img.shields.io/badge/go-%3E%3D1.25-blue)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
