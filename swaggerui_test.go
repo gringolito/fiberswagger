@@ -257,3 +257,14 @@ func TestMiddleware_PropagatesNextHandler(t *testing.T) {
 	require.Equal(t, fiber.StatusNoContent, resp.StatusCode)
 	require.True(t, nextCalled, "Middleware mode must propagate non-swagger requests to the next Fiber handler")
 }
+
+// TestNoMongoDriverDependency guards against re-introducing go.mongodb.org/mongo-driver
+// as a transitive dependency. fiberswagger has no use for a MongoDB driver; it was
+// previously pulled in via older go-openapi/strfmt versions and inflated the binary
+// size and CVE surface area for downstream users.
+func TestNoMongoDriverDependency(t *testing.T) {
+	data, err := os.ReadFile("go.sum")
+	require.NoError(t, err)
+	require.NotContains(t, string(data), "go.mongodb.org/mongo-driver",
+		"fiberswagger must not pull in mongo-driver as a transitive dep")
+}
