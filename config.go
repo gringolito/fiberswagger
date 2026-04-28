@@ -1,5 +1,6 @@
 package fiberswagger
 
+// Config holds the configuration options for the fiberswagger middleware.
 type Config struct {
 	// Base path for the SwaggerUI.
 	//
