@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/go-openapi/loads v0.23.3
 	github.com/go-openapi/runtime v0.29.4
-	github.com/gofiber/fiber/v2 v2.52.12
+	github.com/gofiber/fiber/v2 v2.52.13
 	github.com/stretchr/testify v1.8.2
 )
 
